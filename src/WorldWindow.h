@@ -16,6 +16,7 @@
 #include "Ground.h"
 #include "Track.h"
 #include "Building.h"
+#include "Mountain.h"
 
 
 // Subclass the Fl_Gl_Window because we want to draw OpenGL in here.
@@ -39,6 +40,7 @@ class WorldWindow : public Fl_Gl_Window {
 	Ground	    ground;	    // The ground object.
 	Track  traintrack;	    // The train and track.
     Building building;      // The building object
+    Mountain mountain;      // The building object
     
     bool viewTrack;
 

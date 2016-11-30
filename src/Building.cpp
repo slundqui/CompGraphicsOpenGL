@@ -15,7 +15,7 @@ Building::~Building(void)
 {
     if ( initialized )
     {
-	glDeleteLists(display_list, 1);
+	glDeleteLists(display_list, 3);
 	glDeleteTextures(1, &texture_obj_wall);
 	glDeleteTextures(1, &texture_obj_roof);
     }

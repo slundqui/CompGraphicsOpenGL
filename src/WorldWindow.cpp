@@ -88,6 +88,7 @@ WorldWindow::draw(void)
 	ground.Initialize();
 	traintrack.Initialize();
 	building.Initialize();
+    mountain.Initialize();
     }
 
     // Stuff out here relies on a coordinate system or must be done on every
@@ -122,13 +123,14 @@ WorldWindow::draw(void)
     // Position the light source. This has to happen after the viewing
     // transformation is set up, so that the light stays fixed in world
     // space. This is a directional light - note the 0 in the w component.
-    dir[0] = 1.0; dir[1] = 1.0; dir[2] = 1.0; dir[3] = 0.0;
+    dir[0] = -1.0; dir[1] = -1.0; dir[2] = 1.0; dir[3] = 0.0;
     glLightfv(GL_LIGHT0, GL_POSITION, dir);
 
     // Draw stuff. Everything.
     ground.Draw();
     traintrack.Draw();
     building.Draw();
+    mountain.Draw();
 }
 
 
@@ -207,10 +209,17 @@ WorldWindow::handle(int event)
         {
             case FL_KEYBOARD:
                 int key = Fl::event_key();
-                switch (key)
+                switch (key){
                     case ' ':
                         viewTrack = false;
                         return 1;
+                    case 's':
+                        mountain.Subdivide();
+                        return 1;
+                    case 'r':
+                        mountain.ResetSubdivision();
+                        return 1;
+                }
         }
     }
     else{
@@ -235,10 +244,17 @@ WorldWindow::handle(int event)
                 return 1;
             case FL_KEYBOARD:
                 int key = Fl::event_key();
-                switch (key)
+                switch (key){
                     case ' ':
                         viewTrack = true;
                         return 1;
+                    case 's':
+                        mountain.Subdivide();
+                        return 1;
+                    case 'r':
+                        mountain.ResetSubdivision();
+                        return 1;
+                }
         }
     }
 

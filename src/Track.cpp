@@ -72,11 +72,11 @@ Track::Initialize(void)
     track_list = glGenLists(1);
     glNewList(track_list, GL_COMPILE);
 	glColor3f(1.0f, 1.0, 1.0f);
-	glBegin(GL_TRIANGLE_STRIP);
+	glBegin(GL_LINE_STRIP);
 	    for ( i = 0 ; i <= n_refined ; i++ )
 	    {
-		refined.Evaluate_Point((float)i, p);
-		glVertex3fv(p);
+            refined.Evaluate_Point((float)i, p);
+            glVertex3fv(p);
 	    }
 	glEnd();
     glEndList();
