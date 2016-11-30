@@ -46,7 +46,7 @@ void Mountain::DrawTriangle(struct triangle* t){
     glNormal3f(nx, ny, nz);
 
     //Color gray
-    glColor3f(0.5, 0.5, 0.5);
+    glColor3f(0.2+p2z/80, 0.2+p2z/80, 0.2+p2z/80);
     glVertex3f(p1x, p1y, p1z);
     glVertex3f(p2x, p2y, p2z);
     glVertex3f(p3x, p3y, p3z);
@@ -75,9 +75,29 @@ void Mountain::ClearSubdivision(){
 
 }
 
+
+void Mountain::AddTriangle(struct point * p1, struct point * p2, struct point * p3, bool addToPointList){
+    if(addToPointList){
+        //We push points onto pointList for free later
+        pointList.push_back(p1);
+        pointList.push_back(p2);
+        pointList.push_back(p3);
+    }
+
+    //Only make triangle if there exists a point with z > 0
+    if(p1->z > 0 || p2->z > 0 || p3->z > 0){
+        struct triangle* t = new triangle();
+        t->p1 = p1;
+        t->p2 = p2;
+        t->p3 = p3;
+        //Add triangle to vector
+        triList.push_back(t);
+    }
+}
 void Mountain::ResetSubdivision(){
     ClearSubdivision();
 
+    //Reset update val
     randUpdateVal = 10;
 
     //Initial subdivision triangle
@@ -85,29 +105,73 @@ void Mountain::ResetSubdivision(){
     struct point * p2 = new point();
     struct point * p3 = new point();
 
-    p1->x = -10;
+    p1->x = -20;
     p1->y = 50;
     p1->z = 0;
 
     p2->x = 50;
-    p2->y = -10;
+    p2->y = -20;
     p2->z = 0;
 
     p3->x = 50;
     p3->y = 50;
     p3->z = 50;
 
-    pointList.push_back(p1);
-    pointList.push_back(p2);
-    pointList.push_back(p3);
+    AddTriangle(p1, p2, p3, true);
 
-    struct triangle* t = new triangle();
-    t->p1 = p1;
-    t->p2 = p2;
-    t->p3 = p3;
+    p1 = new point();
+    p2 = new point();
+    p3 = new point();
 
-    //Add triangle to vector
-    triList.push_back(t);
+    p1->x = -10;
+    p1->y = -50;
+    p1->z = 0;
+
+    p2->x = -50;
+    p2->y = -10;
+    p2->z = 0;
+
+    p3->x = -50;
+    p3->y = -50;
+    p3->z = 20;
+
+    AddTriangle(p1, p2, p3, true);
+
+    p1 = new point();
+    p2 = new point();
+    p3 = new point();
+
+    p1->x = -50;
+    p1->y = 10;
+    p1->z = 0;
+
+    p2->x = 10;
+    p2->y = 50;
+    p2->z = 0;
+
+    p3->x = -50;
+    p3->y = 50;
+    p3->z = 20;
+
+    AddTriangle(p1, p2, p3, true);
+
+    p1 = new point();
+    p2 = new point();
+    p3 = new point();
+
+    p1->x = 50;
+    p1->y = 0;
+    p1->z = 0;
+
+    p2->x = 0;
+    p2->y = -50;
+    p2->z = 0;
+
+    p3->x = 50;
+    p3->y = -50;
+    p3->z = 40;
+
+    AddTriangle(p1, p2, p3, true);
 
 }
 
@@ -116,7 +180,7 @@ void Mountain::ResetSubdivision(){
 bool
 Mountain::Initialize(void)
 {
-    randUpdateRatio = .8;
+    randUpdateRatio = .6;
 
     ResetSubdivision();
 
@@ -166,10 +230,8 @@ struct point* Mountain::GetPointFromEdge(struct point * p1, struct point * p2){
                 newP->z = 0;
             }
         }
-
         //Add this edge to the lookup
         edgePtLookup[p1p2] = newP;
-        //Add this point to pointList
         pointList.push_back(newP);
     }
     return newP;
@@ -186,30 +248,11 @@ void Mountain::SubdivideTriangle(struct triangle * t){
     struct point * newP2 = GetPointFromEdge(p2, p3);
     struct point * newP3 = GetPointFromEdge(p3, p1);
 
-    //Make 4 triangles with new points
-    struct triangle * newT = new triangle();
-    newT->p1 = newP1;
-    newT->p2 = newP2;
-    newT->p3 = newP3;
-    triList.push_back(newT);
-
-    newT = new triangle();
-    newT->p1 = p1;
-    newT->p2 = newP1;
-    newT->p3 = newP3;
-    triList.push_back(newT);
-
-    newT = new triangle();
-    newT->p1 = newP1;
-    newT->p2 = p2;
-    newT->p3 = newP2;
-    triList.push_back(newT);
-
-    newT = new triangle();
-    newT->p1 = newP3;
-    newT->p2 = newP2;
-    newT->p3 = p3;
-    triList.push_back(newT);
+    //GetPointFromEdge already adds the point to the pointList if necessary
+    AddTriangle(newP1, newP2, newP3, false);
+    AddTriangle(p1, newP1, newP3, false);
+    AddTriangle(newP1, p2, newP2, false);
+    AddTriangle(newP3, newP2, p3, false);
 }
 
 void Mountain::Subdivide(){

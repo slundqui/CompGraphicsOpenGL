@@ -113,7 +113,10 @@ void Building::DrawBuilding(float xsize, float ysize, float zsize, float roof_he
 	glDisable(GL_TEXTURE_2D);
 }
 
-void Building::DrawTriangle(float p1x, float p1y, float p1z, float p2x, float p2y, float p2z, float p3x, float p3y, float p3z){
+//First 2 points are base, with 3rd point being peak
+void Building::DrawTriangle(float p1x, float p1y, float p1z, float p2x, float p2y, float p2z, float p3x, float p3y, float p3z, float texX, float texY){
+
+    float texScale = 3;
 
     //Calculate surface normal
     float ux = p2x - p1x;
@@ -131,9 +134,10 @@ void Building::DrawTriangle(float p1x, float p1y, float p1z, float p2x, float p2
     glNormal3f(nx, ny, nz);
 
     //glColor3f(0, 0, 1);
+	glColor3f(1.0, 1.0, 1.0);
     glTexCoord2f(0, 0); glVertex3f(p1x, p1y, p1z);
-    glTexCoord2f(1, 0); glVertex3f(p2x, p2y, p2z);
-    glTexCoord2f(.5, 1); glVertex3f(p3x, p3y, p3z);
+    glTexCoord2f(texX/texScale, 0); glVertex3f(p2x, p2y, p2z);
+    glTexCoord2f(texX/(texScale*2), texY/texScale); glVertex3f(p3x, p3y, p3z);
 }
 
 void Building::DrawRoof(float xsize, float ysize, float zsize, int roof_height){
@@ -143,13 +147,28 @@ void Building::DrawRoof(float xsize, float ysize, float zsize, int roof_height){
     //
     glBegin(GL_TRIANGLES);
 
-    DrawTriangle(1*xsize, -1*ysize, 2*zsize, 1*xsize, 1*ysize, 2*zsize, 0, 0, 2*zsize+roof_height);
+    float yHyp = sqrtf(xsize*xsize + roof_height*roof_height);
+    float xHyp = sqrtf(ysize*ysize + roof_height*roof_height);
 
-    DrawTriangle(1*xsize, 1*ysize, 2*zsize, -1*xsize, 1*ysize, 2*zsize, 0, 0, 2*zsize+roof_height);
+    DrawTriangle(1*xsize, -1*ysize, 2*zsize, 
+                 1*xsize, 1*ysize,  2*zsize, 
+                 0,       0,        2*zsize+roof_height,
+                 ysize, yHyp);
 
-    DrawTriangle(-1*xsize, 1*ysize, 2*zsize, -1*xsize, -1*ysize, 2*zsize, 0, 0, 2*zsize+roof_height);
+    DrawTriangle(1*xsize, 1*ysize, 2*zsize, 
+                 -1*xsize, 1*ysize, 2*zsize, 
+                 0, 0, 2*zsize+roof_height,
+                 xsize, xHyp);
 
-    DrawTriangle(-1*xsize, -1*ysize, 2*zsize, 1*xsize, -1*ysize, 2*zsize, 0, 0, 2*zsize+roof_height);
+    DrawTriangle(-1*xsize, 1*ysize, 2*zsize, 
+                 -1*xsize, -1*ysize, 2*zsize, 
+                 0, 0, 2*zsize+roof_height,
+                 ysize, yHyp);
+
+    DrawTriangle(-1*xsize, -1*ysize, 2*zsize, 
+                 1*xsize, -1*ysize, 2*zsize, 
+                 0, 0, 2*zsize+roof_height,
+                 xsize, xHyp);
 
     glEnd();
 }
@@ -157,32 +176,42 @@ void Building::DrawRoof(float xsize, float ysize, float zsize, int roof_height){
 void Building::DrawWalls(float xsize, float ysize, float zsize)
 {
 
+    float texScale = 5;
+    float texX = xsize/texScale; 
+    float texY = ysize/texScale; 
+    float texZ = zsize/texScale; 
+
     glBegin(GL_QUADS);
     // Sides
 
     glNormal3f(0, 1, 0);
-    glTexCoord2f(0, 0); glVertex3f(-1*xsize, 1*ysize,  0);
-    glTexCoord2f(0, 1); glVertex3f(-1*xsize, 1*ysize,  2*zsize);
-    glTexCoord2f(1, 1); glVertex3f(1 *xsize, 1*ysize,  2*zsize);
-    glTexCoord2f(1, 0); glVertex3f(1 *xsize, 1*ysize,  0*zsize);
+	// Use white, because the texture supplies the color.
+	glColor3f(1.0, 1.0, 1.0);
+    glTexCoord2f(0, 0);       glVertex3f(-1*xsize, 1*ysize,  0);
+    glTexCoord2f(0, texZ);    glVertex3f(-1*xsize, 1*ysize,  2*zsize);
+    glTexCoord2f(texX, texZ); glVertex3f(1 *xsize, 1*ysize,  2*zsize);
+    glTexCoord2f(texX, 0);    glVertex3f(1 *xsize, 1*ysize,  0*zsize);
 
     glNormal3f(0, -1, 0);
-    glTexCoord2f(0, 0); glVertex3f(-1*xsize, -1*ysize,  0);
-    glTexCoord2f(1, 0); glVertex3f( 1*xsize, -1*ysize,  0);
-    glTexCoord2f(1, 1); glVertex3f( 1*xsize, -1*ysize,  2*zsize);
-    glTexCoord2f(0, 1); glVertex3f(-1*xsize, -1*ysize,  2*zsize);
+	glColor3f(1.0, 1.0, 1.0);
+    glTexCoord2f(0, 0);       glVertex3f(-1*xsize, -1*ysize,  0);
+    glTexCoord2f(texX, 0);    glVertex3f( 1*xsize, -1*ysize,  0);
+    glTexCoord2f(texX, texZ); glVertex3f( 1*xsize, -1*ysize,  2*zsize);
+    glTexCoord2f(0, texZ);    glVertex3f(-1*xsize, -1*ysize,  2*zsize);
 
     glNormal3f(-1, 0, 0);
-    glTexCoord2f(1, 0); glVertex3f(-1*xsize,  1*ysize,  0);
-    glTexCoord2f(0, 0); glVertex3f(-1*xsize, -1*ysize,  0);
-    glTexCoord2f(0, 1); glVertex3f(-1*xsize, -1*ysize,  2*zsize);
-    glTexCoord2f(1, 1); glVertex3f(-1*xsize,  1*ysize,  2*zsize);
+	glColor3f(1.0, 1.0, 1.0);
+    glTexCoord2f(texY, 0);    glVertex3f(-1*xsize,  1*ysize,  0);
+    glTexCoord2f(0, 0);       glVertex3f(-1*xsize, -1*ysize,  0);
+    glTexCoord2f(0, texZ);    glVertex3f(-1*xsize, -1*ysize,  2*zsize);
+    glTexCoord2f(texY, texZ); glVertex3f(-1*xsize,  1*ysize,  2*zsize);
 
     glNormal3f(1, 0, 0);
-    glTexCoord2f(1, 1); glVertex3f(1*xsize,  1*ysize,  2*zsize);
-    glTexCoord2f(0, 1); glVertex3f(1*xsize, -1*ysize,  2*zsize);
-    glTexCoord2f(0, 0); glVertex3f(1*xsize, -1*ysize,  0);
-    glTexCoord2f(1, 0); glVertex3f(1*xsize,  1*ysize,  0);
+	glColor3f(1.0, 1.0, 1.0);
+    glTexCoord2f(texY, texZ); glVertex3f(1*xsize,  1*ysize,  2*zsize);
+    glTexCoord2f(0, texZ);    glVertex3f(1*xsize, -1*ysize,  2*zsize);
+    glTexCoord2f(0, 0);       glVertex3f(1*xsize, -1*ysize,  0);
+    glTexCoord2f(texY, 0);    glVertex3f(1*xsize,  1*ysize,  0);
     
     glEnd();
 }

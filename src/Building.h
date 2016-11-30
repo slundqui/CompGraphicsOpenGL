@@ -8,6 +8,7 @@
 #define _BUILDING_H_
 
 #include <Fl/gl.h>
+#include <cmath>
 
 class Building {
   private:
@@ -20,7 +21,7 @@ class Building {
     void DrawBuilding(float xsize, float ysize, float zsize, float roof_height);
     void DrawWalls(float xsize, float ysize, float zsize);
     void DrawRoof(float xsize, float ysize, float zsize, int roof_height);
-    void DrawTriangle(float, float, float, float, float, float, float, float, float);
+    void DrawTriangle(float, float, float, float, float, float, float, float, float, float, float);
     bool LoadTexture(const char* filename, GLuint* textureObj);
 
   public:

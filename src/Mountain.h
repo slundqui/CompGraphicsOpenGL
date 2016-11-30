@@ -49,6 +49,7 @@ class Mountain {
     void SubdivideTriangle(struct triangle* t);
     struct point* GetPointFromEdge(struct point * p1, struct point * p2);
     void ClearSubdivision();
+    void AddTriangle(struct point * p1, struct point * p2, struct point * p3, bool addToPointList);
 
   public:
     // Constructor. Can't do initialization here because we are
