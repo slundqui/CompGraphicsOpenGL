@@ -72,7 +72,7 @@ Track::Initialize(void)
     track_list = glGenLists(1);
     glNewList(track_list, GL_COMPILE);
 	glColor3f(1.0f, 1.0, 1.0f);
-	glBegin(GL_LINE_STRIP);
+	glBegin(GL_TRIANGLE_STRIP);
 	    for ( i = 0 ; i <= n_refined ; i++ )
 	    {
 		refined.Evaluate_Point((float)i, p);
@@ -132,6 +132,16 @@ Track::Initialize(void)
 }
 
 
+void Track::carLocation(float* outPos){
+    track->Evaluate_Point(posn_on_track, outPos);
+}
+
+void Track::carDirection(float* outPos){
+    //Don't update speed
+    float newPos = CalcUpdate(0.1f, NULL);
+    track->Evaluate_Point(newPos, outPos);
+}
+
 // Draw
 void
 Track::Draw(void)
@@ -151,7 +161,8 @@ Track::Draw(void)
     glPushMatrix();
 
     // Figure out where the train is
-    track->Evaluate_Point(posn_on_track, posn);
+    carLocation(posn);
+    //track->Evaluate_Point(posn_on_track, posn);
 
     // Translate the train to the point
     glTranslatef(posn[0], posn[1], posn[2]);
@@ -175,17 +186,12 @@ Track::Draw(void)
     glPopMatrix();
 }
 
-
-void
-Track::Update(float dt)
-{
+float Track::CalcUpdate(float dt, float* newSpeed){
     float   point[3];
     float   deriv[3];
     double  length;
     double  parametric_speed;
-
-    if ( ! initialized )
-	return;
+    float newPos;
 
     // First we move the train along the track with its current speed.
 
@@ -194,28 +200,45 @@ Track::Update(float dt)
 
     // Get its length.
     length = sqrt(deriv[0]*deriv[0] + deriv[1]*deriv[1] + deriv[2]*deriv[2]);
-    if ( length == 0.0 )
-	return;
+    if ( length == 0.0 ) return 0;
 
     // The parametric speed is the world train speed divided by the length
     // of the tangent vector.
     parametric_speed = speed / length;
 
     // Now just evaluate dist = speed * time, for the parameter.
-    posn_on_track += (float)(parametric_speed * dt);
+    newPos = posn_on_track + (float)(parametric_speed * dt);
 
     // If we've just gone around the track, reset back to the start.
-    if ( posn_on_track > track->N() )
-	posn_on_track -= track->N();
+    if ( newPos > track->N() )
+	newPos -= track->N();
 
-    // As the second step, we use conservation of energy to set the speed
-    // for the next time.
-    // The total energy = z * gravity + 1/2 speed * speed, assuming unit mass
-    track->Evaluate_Point(posn_on_track, point);
-    if ( TRAIN_ENERGY - 9.81 * point[2] < 0.0 )
-	speed = 0.0;
-    else
-	speed = (float)sqrt(2.0 * ( TRAIN_ENERGY - 9.81 * point[2] ));
+    //Only update speed if newSpeed != NULL
+    if(newSpeed){
+        // As the second step, we use conservation of energy to set the speed
+        // for the next time.
+        // The total energy = z * gravity + 1/2 speed * speed, assuming unit mass
+        track->Evaluate_Point(posn_on_track, point);
+
+        if ( TRAIN_ENERGY - 9.81 * point[2] < 0.0 )
+        *newSpeed = 0.0;
+        else
+        *newSpeed = (float)sqrt(2.0 * ( TRAIN_ENERGY - 9.81 * point[2] ));
+    }
+    return newPos;
+}
+
+void
+Track::Update(float dt)
+{
+
+    if ( ! initialized )
+	return;
+
+    //This funciton will update speed
+    float newPos = CalcUpdate(dt, &speed);
+    posn_on_track = newPos;
+
 }
 
 

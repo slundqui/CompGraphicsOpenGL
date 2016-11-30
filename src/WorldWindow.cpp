@@ -26,6 +26,7 @@ WorldWindow::WorldWindow(int x, int y, int width, int height, char *label)
     dist = 100.0f;
     x_at = 0.0f;
     y_at = 0.0f;
+    viewTrack = false;
 
 }
 
@@ -86,6 +87,7 @@ WorldWindow::draw(void)
 	// Initialize all the objects.
 	ground.Initialize();
 	traintrack.Initialize();
+	building.Initialize();
     }
 
     // Stuff out here relies on a coordinate system or must be done on every
@@ -97,12 +99,25 @@ WorldWindow::draw(void)
     // Set up the viewing transformation. The viewer is at a distance
     // dist from (x_at, y_ay, 2.0) in the direction (theta, phi) defined
     // by two angles. They are looking at (x_at, y_ay, 2.0) and z is up.
-    eye[0] = x_at + dist * cos(theta * M_PI / 180.0) * cos(phi * M_PI / 180.0);
-    eye[1] = y_at + dist * sin(theta * M_PI / 180.0) * cos(phi * M_PI / 180.0);
-    eye[2] = 2.0 + dist * sin(phi * M_PI / 180.0);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
-    gluLookAt(eye[0], eye[1], eye[2], x_at, y_at, 2.0, 0.0, 0.0, 1.0);
+    if(viewTrack){
+        float eyef[3];
+        float dirf[3];
+        traintrack.carLocation(eyef);
+        traintrack.carDirection(dirf);
+
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        //gluLookAt(eye[0], eye[1], eye[2], x_at, y_at, 2.0, 0.0, 0.0, 1.0);
+        gluLookAt(eyef[0], eyef[1], eyef[2], dirf[0], dirf[1], dirf[2], 0.0, 0.0, 1);
+    }
+    else{
+        eye[0] = x_at + dist * cos(theta * M_PI / 180.0) * cos(phi * M_PI / 180.0);
+        eye[1] = y_at + dist * sin(theta * M_PI / 180.0) * cos(phi * M_PI / 180.0);
+        eye[2] = 2.0 + dist * sin(phi * M_PI / 180.0);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+        gluLookAt(eye[0], eye[1], eye[2], x_at, y_at, 2.0, 0.0, 0.0, 1.0);
+    }
 
     // Position the light source. This has to happen after the viewing
     // transformation is set up, so that the light stays fixed in world
@@ -113,6 +128,7 @@ WorldWindow::draw(void)
     // Draw stuff. Everything.
     ground.Draw();
     traintrack.Draw();
+    building.Draw();
 }
 
 
@@ -186,25 +202,44 @@ WorldWindow::handle(int event)
     // Event handling routine. Only looks at mouse events.
     // Stores a bunch of values when the mouse goes down and keeps track
     // of where the mouse is and what mouse button is down, if any.
-    switch ( event )
-    {
-      case FL_PUSH:
-        button = Fl::event_button();
-	x_last = x_down = Fl::event_x();
-	y_last = y_down = Fl::event_y();
-	phi_down = phi;
-	theta_down = theta;
-	dist_down = dist;
-	x_at_down = x_at;
-	y_at_down = y_at;
-	return 1;
-      case FL_DRAG:
-	x_last = Fl::event_x();
-	y_last = Fl::event_y();
-	return 1;
-      case FL_RELEASE:
-        button = -1;
-	return 1;
+    if(viewTrack){
+        switch ( event )
+        {
+            case FL_KEYBOARD:
+                int key = Fl::event_key();
+                switch (key)
+                    case ' ':
+                        viewTrack = false;
+                        return 1;
+        }
+    }
+    else{
+        switch ( event )
+        {
+            case FL_PUSH:
+                button = Fl::event_button();
+                x_last = x_down = Fl::event_x();
+                y_last = y_down = Fl::event_y();
+                phi_down = phi;
+                theta_down = theta;
+                dist_down = dist;
+                x_at_down = x_at;
+                y_at_down = y_at;
+                return 1;
+            case FL_DRAG:
+                x_last = Fl::event_x();
+                y_last = Fl::event_y();
+                return 1;
+            case FL_RELEASE:
+                button = -1;
+                return 1;
+            case FL_KEYBOARD:
+                int key = Fl::event_key();
+                switch (key)
+                    case ' ':
+                        viewTrack = true;
+                        return 1;
+        }
     }
 
     // Pass any other event types on the superclass.
